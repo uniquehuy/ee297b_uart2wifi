@@ -21,16 +21,44 @@
 
 
 module tb_top();
-    logic clk;
-    uart2wifi_core_ip dut(clk);
+    logic clk, rst;
+    
+    // switch
+    logic switch_one;
+    
+    // led output
+    logic board_led0;
+    
+    uart2wifi_core_ip dut(.clk(clk), .rst(rst), .switch_in(switch_one), .board_led0(board_led0));
     
     
     initial begin
+        rst = 0;
         clk = 0;
         forever #10 clk = ~clk;
     end
+    
+    initial begin
+        #1;
+        rst = 1;
+        #1;
+        rst = 0;
+    end
        
     initial begin
+        switch_one = 0;
+        #50;
+        switch_one = 1;
+        #50;
+        switch_one = 0;
+        #50;
+        switch_one = 1;
+        #50;
+        switch_one = 1;
+        #50;
+        switch_one = 0;
+        #50;
+        switch_one = 1;
         #200;
         $finish();
     end
