@@ -21,6 +21,10 @@
 
 
 module uart2wifi_core_led(
-
+    input clk,
+    input led_en,
+    output led_out
     );
+    
+    assign led_out = led_en;
 endmodule

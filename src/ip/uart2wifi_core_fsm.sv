@@ -18,9 +18,43 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
-
+`ifndef ENV_PARAMS
+`include "env_params.sv"
+`endif
 
 module uart2wifi_core_fsm(
-
+    input clk,
+    input rst,
+    input switch_in,
+    output led_en
     );
+
+fsm_state current_state, next_state;
+assign led_en = current_state;
+
+always @(posedge clk or posedge rst) begin
+    if (rst)
+        current_state <= IDLE;
+    else begin
+        current_state <= next_state;
+    end
+end
+
+always_comb begin
+/*
+    case (current_state)
+        IDLE: next_state = BUSY;
+        BUSY: next_state = IDLE;
+    endcase
+*/
+
+    if (switch_in) begin
+        next_state = BUSY;
+    end
+    else begin
+        next_state = IDLE;
+    end
+
+end
+
 endmodule
