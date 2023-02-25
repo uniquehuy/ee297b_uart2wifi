@@ -26,7 +26,8 @@ module uart2wifi_core_fsm(
     input clk,
     input rst,
     input switch_in,
-    output led_en
+    output led_en,
+    reg_if.master fsm_reg_if
     );
 
 fsm_state current_state, next_state;
