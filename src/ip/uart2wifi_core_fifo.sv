@@ -37,8 +37,9 @@ module uart2wifi_core_fifo #(parameter DWIDTH=8)
     parameter address_size = 1;
     
     reg [DWIDTH-1:0] mem [2**address_size-1:0];
-    reg wr_ptr, rd_ptr;
-    reg wr_ptr_next, rd_ptr_next;
+    reg [address_size-1:0] wr_ptr, rd_ptr;
+    reg [address_size-1:0] wr_ptr_next, rd_ptr_next;
+    reg [address_size-1:0] wr_ptr_succ, rd_ptr_succ;
     
     reg full_reg;
     reg empty_reg;
@@ -54,12 +55,7 @@ module uart2wifi_core_fifo #(parameter DWIDTH=8)
         end
      
     //   
-    always@(posedge clk)
-        if(rd & ~empty_reg)
-        begin
-            read_data <= mem[rd_ptr];
-        end
-        
+   assign read_data = mem[rd_ptr];        
             
     
     assign w_en = wr & ~full_reg;
@@ -86,6 +82,42 @@ module uart2wifi_core_fifo #(parameter DWIDTH=8)
     
     
    // Need to add logic for updating read and write pointer here
-   
+   always@*
+   begin
+    wr_ptr_succ = wr_ptr+1;
+    rd_ptr_succ = rd_ptr+1;
+    
+    wr_ptr_next = wr_ptr;
+    rd_ptr_next = rd_ptr;
+    full_next = full_reg;
+    empty_next = empty_reg;
+    
+    case({w_en,rd})
+        
+        2'b01:
+            if(~empty_reg)
+                begin
+                    rd_ptr_next = rd_ptr_succ;
+                    full_next = 1'b0;
+                    if (rd_ptr_succ == wr_ptr)
+                        empty_next = 1'b1;
+               end 
+        2'b10:
+            if(~full_reg)
+                begin
+                    wr_ptr_next = wr_ptr_succ;
+                    empty_next = 1'b0;
+                    if (wr_ptr_succ == rd_ptr)
+                        full_next = 1'b1;
+                end 
+        2'b11:
+            begin
+                wr_ptr_next = wr_ptr_succ;
+                rd_ptr_next = rd_ptr_succ;
+            end 
+     endcase
+              
+                    
+   end
    
 endmodule
