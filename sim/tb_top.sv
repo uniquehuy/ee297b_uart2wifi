@@ -203,7 +203,7 @@ module tb_top();
         @(posedge baud_tick);
         counter = 0;
         @(posedge baud_tick);
-        if (counter == 10 + 1)
+        if (counter == 10)
             $display("PASS, baud ticked at right time");
         else begin
             $display("FAIL, baud ticked at incorrect time, expected: %0h, received: %0h", 32'd10, counter);
