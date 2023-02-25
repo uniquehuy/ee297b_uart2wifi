@@ -26,23 +26,22 @@ module uart2wifi_core_baudrategen(
     output wire baudtick
     );
     
-    // just set it to 100 for now, will likely change
-    parameter numticks = 100;
+    parameter numticks = 10;
     
     reg [15:0] count;
     wire [15:0] next;
     
-    always @ (posedge clk, negedge rstn)
+    always @ (posedge clk, posedge rst)
         begin
-            if(!rst)
+            if(rst)
                 count <= 0;
             else
                 count <= next;
     end
     
     // Baudrate = (clk freq)/( numticks * # of bits we send) I think
-    assign next = ((count == numticks) ? 0 : count+1'b1);
+    assign next = ((count == numticks - 1) ? 0 : count+1'b1);
     
-    assign baudtick = ((count == numticks) ? 1'b1 : 1'b0);
+    assign baudtick = ((count == numticks - 1) ? 1'b1 : 1'b0);
                 
 endmodule

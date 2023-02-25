@@ -18,11 +18,14 @@ module uart2wifi_core_sram(
     assign write = sram_reg_if.reg_write;
     assign read = sram_reg_if.reg_read;
     
-    always @(posedge clk) begin
+    always @(posedge clk or posedge rst) begin
         if (rst) begin
-            network_name_reg = 0;
-            network_pass_reg = 0;
-            other = 0;
+            network_name_reg <= 0;
+            network_pass_reg <= 0;
+            network_name_reg_d <= 0;
+            network_pass_reg_d <= 0;
+            other <= 0;
+            other_d <= 0;
         end
         else begin
             network_name_reg <= network_name_reg_d;

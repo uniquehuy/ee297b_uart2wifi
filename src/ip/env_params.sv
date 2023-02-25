@@ -10,7 +10,7 @@
 // =========
 // FSM PARAMS
 // =========
-typedef enum int {IDLE = 0, BUSY = 1} fsm_state;
+typedef enum int {IDLE = 0, SEND_DATA = 1, READ_DATA = 2, BUSY = 3} fsm_state;
 
 // =========
 // LED PARAMS
