@@ -19,12 +19,26 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-
 module uart2wifi_core_led(
     input clk,
     input led_en,
-    output led_out
+    input fsm_state state,
+    output led_out, 
+    output reg [3:0] led_arr
     );
-    
+    fsm_state cur_state;
+    assign cur_state = state;
     assign led_out = led_en;
+    
+    always_comb
+	begin
+		case(cur_state)
+			IDLE:        led_arr = 8'h1;
+			SEND_DATA:   led_arr = 8'h2;
+			READ_DATA:   led_arr = 8'h4;
+			BUSY:        led_arr = 8'h8;
+			default :    led_arr = 8'hf;
+		endcase
+    end
+    
 endmodule
