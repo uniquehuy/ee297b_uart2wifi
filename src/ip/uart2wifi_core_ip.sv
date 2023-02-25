@@ -25,7 +25,11 @@ module uart2wifi_core_ip(
     output board_led0
     );
     
-    logic led_en;
+    wire led_en;
+    
+    // Communication with register file
+    reg_if fsm_reg_if();
+    
     
     // Instantialize interfaces
     // Will implement later if needed
@@ -33,8 +37,9 @@ module uart2wifi_core_ip(
     //led_if led_if_inst();
     
     // Instantialize modules
-    uart2wifi_core_fsm uart2wifi_core_fsm_inst(.clk(clk), .rst(rst), .switch_in(switch_in), .led_en(led_en));
+    uart2wifi_core_fsm uart2wifi_core_fsm_inst(.clk(clk), .rst(rst), .switch_in(switch_in), .led_en(led_en), .fsm_reg_if(fsm_reg_if));
     uart2wifi_core_led uart2wifi_core_led_inst(.clk(clk), .led_en(led_en), .led_out(board_led0));
     uart2wifi_core_serial uart2wifi_core_serial_inst();
     uart2wifi_core_uart uart2wifi_core_uart_inst();
+    uart2wifi_core_sram uart2wifi_core_sram_inst (.clk(clk), .rst(rst), .sram_reg_if(fsm_reg_if));
 endmodule
