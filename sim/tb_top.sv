@@ -38,6 +38,11 @@ module tb_top();
     
     //tb outputs
     logic baud_tick;
+    
+    // fifo tb I/Os
+    logic fifo_rd, fifo_wr; 
+    logic empty, full;
+    logic [7:0] write_data, read_data;
         
     reg_if reg_if_inst();
     
@@ -47,6 +52,8 @@ module tb_top();
     // Standalone modules
     uart2wifi_core_sram reg_dut(.clk(clk), .rst(rst), .sram_reg_if(reg_if_inst));
     uart2wifi_core_baudrategen baud_dut(.clk(clk), .rst(rst), .baudtick(baud_tick));
+    uart2wifi_core_fifo fifo_dut(.clk(clk), .rst(rst), .rd(fifo_rd), .wr(fifo_wr), .empty(empty), 
+     .full(full), .write_data(write_data), .read_data(read_data));
     
     
     always @(posedge clk or posedge rst) begin
@@ -86,7 +93,7 @@ module tb_top();
     initial begin
         forever begin
             @(posedge clk);
-            if (counter > 10000) begin
+            if (counter > 100000) begin
                 $display("FAIL, TEST TIMEOUT");
                 $finish();
             end
@@ -107,6 +114,8 @@ module tb_top();
         test_fsm();
         test_registers();
         test_baud_generator();
+        test_fifo();
+        
         
         if (!error_flag) begin
             $display("=================");
@@ -211,5 +220,23 @@ module tb_top();
         end
         $display("Finished %0s", tag);
     endtask
+
+    task test_fifo();
+        string tag = "test_fifo";
+        $display("Starting %0s", tag);
+        $display("Testing write");
+        //repeat(1)
+            //@(posedge clk);
+        fifo_wr = 1;
+        write_data = 8'h4;
+        repeat(1)
+            @(posedge clk);
+        fifo_wr = 0;
+            @(posedge clk);
+            fifo_rd = 1;
+            $display(" %0h", read_data);
+        $display("Finished %0s", tag);
+    endtask
+        
 
 endmodule
