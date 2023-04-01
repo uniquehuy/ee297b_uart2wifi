@@ -5,7 +5,7 @@
 // 
 // Create Date: 03/17/2023 08:50:56 PM
 // Design Name: 
-// Module Name: uart2wifi_core_uart_tx
+// Module Name: uart2wifi_core_uart_rx
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -22,7 +22,7 @@
 
 module uart2wifi_core_uart_rx(
   input wire clk,
-  input wire resetn,
+  input wire rst,
   input wire b_tick,        //Baud generator tick
   input wire rx,            
   
@@ -48,9 +48,9 @@ module uart2wifi_core_uart_rx(
   reg [7:0] data_next;
   
 //State Machine  
-  always @ (posedge clk, negedge resetn)
+  always @ (posedge clk, posedge rst)
   begin
-    if(!resetn)
+    if(rst)
       begin
         current_state <= idle_st;
         b_reg <= 0;

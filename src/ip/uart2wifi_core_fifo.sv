@@ -34,7 +34,7 @@ module uart2wifi_core_fifo #(parameter DWIDTH=8)
                 
  );
  
-    parameter address_size = 1;
+    parameter address_size = 4;
     
     reg [DWIDTH-1:0] mem [2**address_size-1:0];
     reg [address_size-1:0] wr_ptr, rd_ptr;
@@ -62,9 +62,9 @@ module uart2wifi_core_fifo #(parameter DWIDTH=8)
     assign full = full_reg;
     assign empty = empty_reg;
     //State Machine
-    always@(posedge clk, negedge rst)
+    always@(posedge clk, posedge rst)
     begin
-        if(!rst)
+        if(rst)
             begin
                 full_reg <= 1'b0;
                 empty_reg <= 1'b1;
@@ -93,7 +93,10 @@ module uart2wifi_core_fifo #(parameter DWIDTH=8)
     empty_next = empty_reg;
     
     case({w_en,rd})
+        2'b00: 
+        begin
         
+        end
         2'b01:
             if(~empty_reg)
                 begin

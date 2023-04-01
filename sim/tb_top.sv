@@ -43,7 +43,14 @@ module tb_top();
     logic fifo_rd, fifo_wr; 
     logic empty, full;
     logic [7:0] write_data, read_data;
-        
+    
+    // uart tb I/Os
+    logic rx, tx, tx_wr;
+    logic enable;
+    logic [7:0] first_data;
+    logic [7:0] second_data;
+    logic [7:0] uart_write_data;
+    
     reg_if reg_if_inst();
     
     // IP (TOP LEVEL)
@@ -51,11 +58,13 @@ module tb_top();
     
     // Standalone modules
     uart2wifi_core_sram reg_dut(.clk(clk), .rst(rst), .sram_reg_if(reg_if_inst));
-    uart2wifi_core_baudrategen baud_dut(.clk(clk), .rst(rst), .baudtick(baud_tick));
+    uart2wifi_core_baudrategen baud_dut(.clk(clk), .rst(rst), .enable(enable), .baudtick(baud_tick));
     uart2wifi_core_fifo fifo_dut(.clk(clk), .rst(rst), .rd(fifo_rd), .wr(fifo_wr), .empty(empty), 
      .full(full), .write_data(write_data), .read_data(read_data));
     
-    
+    uart2wifi_core_uart uart_dut(.clk(clk), .rst(rst), .enable(enable), .tx_wr(tx_wr), .write_data(uart_write_data), .rx(rx), .tx(tx));
+     
+     
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             counter <= 0;
@@ -86,7 +95,7 @@ module tb_top();
     initial begin
         rst = 0;
         clk = 0;
-        forever #10 clk = ~clk;
+        forever #10 clk = ~clk; //50MHz clock
     end
     
     // Kill simulation if timeout
@@ -108,6 +117,12 @@ module tb_top();
         rst = 0;
     end  
     
+    // Baudgen enable initial 
+    // Need to do this at time 0 becuase if this is X it causes the baudgen to malfunction 
+    initial begin
+       enable = 0;
+    end
+    
     
     // MAIN TEST
     initial begin
@@ -115,7 +130,7 @@ module tb_top();
         test_registers();
         test_baud_generator();
         test_fifo();
-        
+        test_uart();
         
         if (!error_flag) begin
             $display("=================");
@@ -209,6 +224,7 @@ module tb_top();
         string tag = "test_baud_generator";
         $display("Starting %0s", tag);
         $display("Testing two ticks...");
+        enable = 1'b1;
         @(posedge baud_tick);
         counter = 0;
         @(posedge baud_tick);
@@ -228,15 +244,89 @@ module tb_top();
         //repeat(1)
             //@(posedge clk);
         fifo_wr = 1;
+        fifo_rd = 0;
         write_data = 8'h4;
-        repeat(1)
+        @(posedge clk);
+        
+        repeat(20) begin
             @(posedge clk);
+            write_data = write_data+1;
+            
+        end  
         fifo_wr = 0;
+        fifo_rd = 1;
+        @(posedge clk);
+        repeat (7) begin
             @(posedge clk);
-            fifo_rd = 1;
+        end
+        fifo_wr = 1;
+        fifo_rd = 1;
+        repeat(8) begin
+            @(posedge clk);
+            write_data = write_data+1;
+            
+        end     
             $display(" %0h", read_data);
         $display("Finished %0s", tag);
     endtask
         
-
+    task test_uart();
+        string tag = "test_uart";
+        $display("Starting %0s", tag);
+        $display("Testing RX");
+        tx_wr = 0;
+        uart_write_data = 8'h0;
+        
+        rx = 1;
+        @(posedge clk); //for checking when the data is read, check the count_reg value in the rx inst
+        rx = 0;
+        #52083;  // current baud rate is 19200 bits/s meaning one bit is sampled about every 52083 ns
+        rx = 1; // 2 one data bits
+        #52083;
+        #52083;
+        rx = 0; // 3 zero data bits
+        #52083;
+        #52083;
+        #52083;
+        rx = 1; // 1 one data bit
+        #52083;
+        rx = 0; // 3 zero data bits (expeceted value 0x23)
+        #52083;
+        #52083;
+        #52083;
+        
+        
+        $display("Testing TX");
+        
+      
+        #52083;
+        tx_wr = 1;
+        first_data = 8'h86;
+        uart_write_data = first_data;
+        
+        @(posedge clk);
+        second_data = 8'hFA;
+        uart_write_data = second_data;
+        #26041; //half baud rate to sample in the middle
+        $display("TX start bit, expected: %0h, received: %0h", 1'b0, tx);
+        for(int i=0; i<8; i+=1)begin
+            #52083;
+            $display("TX data bit %0d expected: %0h, received: %0h", i, first_data[i], tx);
+        end
+        #52083; //one stop bit
+        $display("TX stop bit expected: %0h, received: %0h", 1'b1, tx);
+        $display("end first data");
+        #52083;
+        $display("start second data");
+        $display("TX start bit expected: %0h, received: %0h", 1'b0, tx);
+        for(int i=0; i<8; i+=1)begin
+            #52083;
+            $display("TX data bit %0d expected: %0h, received: %0h", i, second_data[i], tx);
+        end
+        #52083; //one stop bit
+        $display("TX stop bit expected: %0h, received: %0h", 1'b1, tx);
+        $display("Finished %0s", tag);
+    endtask
+    
+    
 endmodule

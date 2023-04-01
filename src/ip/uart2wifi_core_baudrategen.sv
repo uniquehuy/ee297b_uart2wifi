@@ -23,10 +23,11 @@
 module uart2wifi_core_baudrategen(
     input wire clk,
     input wire rst,
+    input wire enable,
     output wire baudtick
     );
     
-    parameter numticks = 10;
+    parameter numticks = 162;
     
     reg [15:0] count;
     wire [15:0] next;
@@ -39,9 +40,9 @@ module uart2wifi_core_baudrategen(
                 count <= next;
     end
     
-    // Baudrate = (clk freq)/( numticks * # of bits we send) I think
-    assign next = ((count == numticks - 1) ? 0 : count+1'b1);
+    // current baud rate =  50 MHz/(163*16) = approx 19200 bps
+    assign next = (((count == numticks)||(!enable)) ? 0 : count+1'b1);
     
-    assign baudtick = ((count == numticks - 1) ? 1'b1 : 1'b0);
+    assign baudtick = (((count == numticks)) ? 1'b1 : 1'b0);
                 
 endmodule
