@@ -47,6 +47,7 @@ module uart2wifi_core_uart_rx(
   reg [7:0] data_reg; //data register
   reg [7:0] data_next;
   
+  
 //State Machine  
   always @ (posedge clk, posedge rst)
   begin
@@ -55,7 +56,7 @@ module uart2wifi_core_uart_rx(
         current_state <= idle_st;
         b_reg <= 0;
         count_reg <= 0;
-        data_reg <=0;
+        data_reg <= 0;
       end
     else
       begin
