@@ -23,7 +23,6 @@
 module uart2wifi_core_uart(
     input wire clk,
     input wire rst,
-    input wire enable,
     input wire rx,
     input wire tx_wr,
     input wire [7:0] write_data,
@@ -65,13 +64,12 @@ module uart2wifi_core_uart(
   uart2wifi_core_baudrategen uart2wifi_core_baudrategen_inst(
     .clk(clk),
     .rst(rst),
-    .enable(enable),
     .baudtick(baudtick)
   ); 
    
   uart2wifi_core_fifo  
    #(.DWIDTH(8))
-	uart2wifi_core_fifo_inst_rx (
+	uart2wifi_core_fifo_inst_tx (
     .clk(clk),
     .rst(rst),
     .rd(tx_done),
@@ -84,7 +82,7 @@ module uart2wifi_core_uart(
   
   uart2wifi_core_fifo  
    #(.DWIDTH(8))
-	uart2wifi_core_fifo_inst_tx (
+	uart2wifi_core_fifo_inst_rx (
     .clk(clk),
     .rst(rst),
     .rd(uart_rd),

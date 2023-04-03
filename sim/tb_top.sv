@@ -58,11 +58,11 @@ module tb_top();
     
     // Standalone modules
     uart2wifi_core_sram reg_dut(.clk(clk), .rst(rst), .sram_reg_if(reg_if_inst));
-    uart2wifi_core_baudrategen baud_dut(.clk(clk), .rst(rst), .enable(enable), .baudtick(baud_tick));
+    uart2wifi_core_baudrategen baud_dut(.clk(clk), .rst(rst), .baudtick(baud_tick));
     uart2wifi_core_fifo fifo_dut(.clk(clk), .rst(rst), .rd(fifo_rd), .wr(fifo_wr), .empty(empty), 
      .full(full), .write_data(write_data), .read_data(read_data));
     
-    uart2wifi_core_uart uart_dut(.clk(clk), .rst(rst), .enable(enable), .tx_wr(tx_wr), .write_data(uart_write_data), .rx(rx), .tx(tx));
+    uart2wifi_core_uart uart_dut(.clk(clk), .rst(rst), .tx_wr(tx_wr), .write_data(uart_write_data), .rx(rx), .tx(tx));
      
      
     always @(posedge clk or posedge rst) begin
@@ -121,6 +121,11 @@ module tb_top();
     // Need to do this at time 0 becuase if this is X it causes the baudgen to malfunction 
     initial begin
        enable = 0;
+    end
+    
+    // UART data line is held high until used
+    initial begin
+       rx = 1;
     end
     
     
@@ -228,10 +233,10 @@ module tb_top();
         @(posedge baud_tick);
         counter = 0;
         @(posedge baud_tick);
-        if (counter == 10)
+        if (counter == 163)
             $display("PASS, baud ticked at right time");
         else begin
-            $display("FAIL, baud ticked at incorrect time, expected: %0h, received: %0h", 32'd10, counter);
+            $display("FAIL, baud ticked at incorrect time, expected: %0h, received: %0h", 32'd163, counter);
             error_flag = 1;
         end
         $display("Finished %0s", tag);
@@ -272,11 +277,29 @@ module tb_top();
         
     task test_uart();
         string tag = "test_uart";
+        bit [7:0] rx_data_test;
+        
+        rx_data_test = $urandom();
+        
         $display("Starting %0s", tag);
-        $display("Testing RX");
+        $display($sformatf("Testing RX, value expected:h%h", rx_data_test));
         tx_wr = 0;
         uart_write_data = 8'h0;
         
+        // start bit
+        rx = 0;
+        for (int i = 0; i < 8; i++) begin
+            #52083;
+            rx = rx_data_test[i];
+        end
+        
+        #52083;
+        rx = 1;
+        
+        
+        // Check through waveforms if data_out is appropiate.
+        
+        /* 
         rx = 1;
         @(posedge clk); //for checking when the data is read, check the count_reg value in the rx inst
         rx = 0;
@@ -294,7 +317,8 @@ module tb_top();
         #52083;
         #52083;
         #52083;
-        
+        */
+        // 000100011
         
         $display("Testing TX");
         
@@ -307,6 +331,9 @@ module tb_top();
         @(posedge clk);
         second_data = 8'hFA;
         uart_write_data = second_data;
+        @(posedge clk);
+        tx_wr = 0;
+        
         #26041; //half baud rate to sample in the middle
         $display("TX start bit, expected: %0h, received: %0h", 1'b0, tx);
         for(int i=0; i<8; i+=1)begin
