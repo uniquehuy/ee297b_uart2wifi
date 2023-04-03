@@ -22,7 +22,7 @@
 
 module uart2wifi_core_uart_tx(
   input wire clk,
-  input wire resetn,
+  input wire rst,
   input wire tx_start,        
   input wire b_tick,          //baud rate tick
   input wire [7:0] d_in,      //input data
@@ -50,9 +50,9 @@ module uart2wifi_core_uart_tx(
   reg tx_next;
   
 //State Machine  
-  always @(posedge clk, negedge resetn)
+  always @(posedge clk, posedge rst)
   begin
-    if(!resetn)
+    if(rst)
       begin
         current_state <= idle_st;
         b_reg <= 0;

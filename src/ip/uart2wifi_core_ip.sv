@@ -29,6 +29,9 @@ module uart2wifi_core_ip(
     );
     
     wire led_en;
+    
+    logic rx, tx; 
+    
     fsm_state cur_state;
     
     // Communication with register file
@@ -39,6 +42,6 @@ module uart2wifi_core_ip(
                                                 .data_out(data_out_test), .fsm_reg_if(fsm_reg_if), .state_to_led(cur_state));
     uart2wifi_core_led uart2wifi_core_led_inst(.clk(clk), .led_en(led_en),.state(cur_state),.led_arr(state_led) ,.led_out(board_led0));
     uart2wifi_core_serial uart2wifi_core_serial_inst();
-    uart2wifi_core_uart uart2wifi_core_uart_inst();
+    uart2wifi_core_uart uart2wifi_core_uart_inst( .clk(clk), .rst(rst), .rx(rx), .tx(tx));
     uart2wifi_core_sram uart2wifi_core_sram_inst (.clk(clk), .rst(rst), .sram_reg_if(fsm_reg_if));
 endmodule
