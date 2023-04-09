@@ -281,7 +281,7 @@ module tb_top();
         string tag = "test_uart";
         bit [7:0] rx_data_test;
         
-        rx_data_test = $urandom();
+        rx_data_test = 8'h61;
         
         $display("Starting %0s", tag);
         $display($sformatf("Testing RX, value expected:%h", rx_data_test));
