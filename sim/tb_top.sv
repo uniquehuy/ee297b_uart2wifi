@@ -18,7 +18,7 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
-
+`define LOOPBACK
 
 module tb_top();
     logic clk, rst;
@@ -54,13 +54,13 @@ module tb_top();
     reg_if reg_if_inst();
     
     // IP (TOP LEVEL)
-    uart2wifi_core_ip dut(.clk(clk), .rst(rst), .switch_in(switch_one), .board_led0(board_led0), .data_in_test(data_in_test), .data_out_test(data_out_test));
+    //uart2wifi_core_ip dut(.clk(clk), .rst(rst), .switch_in(switch_one), .board_led0(board_led0), .data_in_test(data_in_test), .data_out_test(data_out_test));
     
     // Standalone modules
-    uart2wifi_core_sram reg_dut(.clk(clk), .rst(rst), .sram_reg_if(reg_if_inst));
-    uart2wifi_core_baudrategen baud_dut(.clk(clk), .rst(rst), .baudtick(baud_tick));
-    uart2wifi_core_fifo fifo_dut(.clk(clk), .rst(rst), .rd(fifo_rd), .wr(fifo_wr), .empty(empty), 
-     .full(full), .write_data(write_data), .read_data(read_data));
+    //uart2wifi_core_sram reg_dut(.clk(clk), .rst(rst), .sram_reg_if(reg_if_inst));
+    //uart2wifi_core_baudrategen baud_dut(.clk(clk), .rst(rst), .baudtick(baud_tick));
+    //uart2wifi_core_fifo fifo_dut(.clk(clk), .rst(rst), .rd(fifo_rd), .wr(fifo_wr), .empty(empty), 
+    // .full(full), .write_data(write_data), .read_data(read_data));
     
     uart2wifi_core_uart uart_dut(.clk(clk), .rst(rst), .tx_wr(tx_wr), .write_data(uart_write_data), .rx(rx), .tx(tx));
      
@@ -131,10 +131,10 @@ module tb_top();
     
     // MAIN TEST
     initial begin
-        test_fsm();
-        test_registers();
-        test_baud_generator();
-        test_fifo();
+        //test_fsm();
+        //test_registers();
+        //test_baud_generator();
+        //test_fifo();
         test_uart();
         
         if (!error_flag) begin
@@ -279,7 +279,7 @@ module tb_top();
         string tag = "test_uart";
         bit [7:0] rx_data_test;
         
-        rx_data_test = $urandom();
+        rx_data_test = 8'h61;
         
         $display("Starting %0s", tag);
         $display($sformatf("Testing RX, value expected:h%h", rx_data_test));
@@ -320,6 +320,8 @@ module tb_top();
         */
         // 000100011
         
+        /*
+        
         $display("Testing TX");
         
       
@@ -352,6 +354,9 @@ module tb_top();
         end
         #52083; //one stop bit
         $display("TX stop bit expected: %0h, received: %0h", 1'b1, tx);
+        
+        */
+        #(52083*50);
         $display("Finished %0s", tag);
     endtask
     

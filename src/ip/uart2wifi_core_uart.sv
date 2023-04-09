@@ -26,7 +26,8 @@ module uart2wifi_core_uart(
     input wire rx,
     input wire tx_wr,
     input wire [7:0] write_data,
-    output wire tx
+    output wire tx,
+    output reg [7:0] latched_dout
     );
     
   
@@ -56,10 +57,18 @@ module uart2wifi_core_uart(
   //baud rate signal
   wire baudtick;
   
+  //wire [7:0] latched_dout;
+  
   assign status = {6'b000000,tx_full,rx_empty};
   
   assign uart_wr = tx_wr;
   assign uart_wdata = write_data; 
+  
+  always @(posedge rx_done) begin
+    latched_dout <= rx_data[7:0];
+  end
+  
+  
   
   uart2wifi_core_baudrategen uart2wifi_core_baudrategen_inst(
     .clk(clk),
@@ -79,7 +88,7 @@ module uart2wifi_core_uart(
     .full(tx_full),
     .read_data(tx_data[7:0])
   ); 
-  
+ /* 
   uart2wifi_core_fifo  
    #(.DWIDTH(8))
 	uart2wifi_core_fifo_inst_rx (
@@ -92,6 +101,22 @@ module uart2wifi_core_uart(
     .full(rx_full),
     .read_data(uart_rdata[7:0])
   );
+  */
+  
+  // LOOPBACK TESTING
+  uart2wifi_core_fifo  
+   #(.DWIDTH(8))
+	uart2wifi_core_fifo_inst_rx (
+    .clk(clk),
+    .rst(rst),
+    .rd(!rx_empty),
+    .wr(rx_done),
+    .write_data(rx_data[7:0]),
+    .empty(rx_empty),
+    .full(rx_full),
+    .read_data(uart_rdata[7:0])
+  );
+
   
   uart2wifi_core_uart_rx uart2wifi_core_rx_inst(
     .clk(clk),
@@ -103,6 +128,7 @@ module uart2wifi_core_uart(
   );
   
   //UART transmitter
+  /*
   uart2wifi_core_uart_tx uart2wifi_core_tx_inst(
     .clk(clk),
     .rst(rst),
@@ -112,6 +138,18 @@ module uart2wifi_core_uart(
     .tx_done(tx_done),
     .tx(tx)
   );
+  */
+
+  uart2wifi_core_uart_tx uart2wifi_core_tx_inst(
+    .clk(clk),
+    .rst(rst),
+    .tx_start(!rx_empty),
+    .b_tick(baudtick),
+    .d_in(uart_rdata[7:0]),
+    .tx_done(tx_done),
+    .tx(tx)
+  );
+  
 endmodule
 
  
