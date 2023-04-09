@@ -24,9 +24,11 @@ module uart2wifi_core_uart(
     input wire clk,
     input wire rst,
     input wire rx,
-    input wire tx_wr,
+    input wire tx_fifo_wr,
+    input wire rx_fifo_rd,
     input wire [7:0] write_data,
-    output wire tx
+    output wire tx,
+    output wire [7:0] read_data
     );
     
   
@@ -58,15 +60,23 @@ module uart2wifi_core_uart(
   
   assign status = {6'b000000,tx_full,rx_empty};
   
-  assign uart_wr = tx_wr;
+  // initial assignment for rd, will need to change for future
+  //assign uart_rd = rx_fifo_rd;
+  
+  // for loopback test
+  assign uart_rd =!rx_empty ; 
+  
+  assign uart_wr = tx_fifo_wr;
   assign uart_wdata = write_data; 
+  
+  assign read_data = uart_rdata;
   
   uart2wifi_core_baudrategen uart2wifi_core_baudrategen_inst(
     .clk(clk),
     .rst(rst),
     .baudtick(baudtick)
   ); 
-   
+   /*
   uart2wifi_core_fifo  
    #(.DWIDTH(8))
 	uart2wifi_core_fifo_inst_tx (
@@ -79,7 +89,7 @@ module uart2wifi_core_uart(
     .full(tx_full),
     .read_data(tx_data[7:0])
   ); 
-  
+  */
   uart2wifi_core_fifo  
    #(.DWIDTH(8))
 	uart2wifi_core_fifo_inst_rx (
@@ -102,6 +112,19 @@ module uart2wifi_core_uart(
     .dout(rx_data[7:0])
   );
   
+  // loopback tx
+  uart2wifi_core_uart_tx uart2wifi_core_tx_inst(
+    .clk(clk),
+    .rst(rst),
+    .tx_start(!rx_empty),
+    .b_tick(baudtick),
+    .d_in(uart_rdata[7:0]),
+    .tx_done(tx_done),
+    .tx(tx)
+  );
+  
+  
+  /*
   //UART transmitter
   uart2wifi_core_uart_tx uart2wifi_core_tx_inst(
     .clk(clk),
@@ -111,7 +134,7 @@ module uart2wifi_core_uart(
     .d_in(tx_data[7:0]),
     .tx_done(tx_done),
     .tx(tx)
-  );
+  );*/
 endmodule
 
  

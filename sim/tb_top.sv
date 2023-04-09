@@ -45,11 +45,12 @@ module tb_top();
     logic [7:0] write_data, read_data;
     
     // uart tb I/Os
-    logic rx, tx, tx_wr;
+    logic rx, tx, tx_wr, rx_rd;
     logic enable;
     logic [7:0] first_data;
     logic [7:0] second_data;
     logic [7:0] uart_write_data;
+    logic [7:0] uart_read_data;
     
     reg_if reg_if_inst();
     
@@ -62,7 +63,7 @@ module tb_top();
     uart2wifi_core_fifo fifo_dut(.clk(clk), .rst(rst), .rd(fifo_rd), .wr(fifo_wr), .empty(empty), 
      .full(full), .write_data(write_data), .read_data(read_data));
     
-    uart2wifi_core_uart uart_dut(.clk(clk), .rst(rst), .tx_wr(tx_wr), .write_data(uart_write_data), .rx(rx), .tx(tx));
+    uart2wifi_core_uart uart_dut(.clk(clk), .rst(rst), .tx_fifo_wr(tx_wr),.rx_fifo_rd(rx_rd), .write_data(uart_write_data), .rx(rx), .tx(tx), .read_data(uart_read_data));
      
      
     always @(posedge clk or posedge rst) begin
@@ -121,6 +122,7 @@ module tb_top();
     // Need to do this at time 0 becuase if this is X it causes the baudgen to malfunction 
     initial begin
        enable = 0;
+       rx_rd = 0;
     end
     
     // UART data line is held high until used
@@ -282,7 +284,7 @@ module tb_top();
         rx_data_test = $urandom();
         
         $display("Starting %0s", tag);
-        $display($sformatf("Testing RX, value expected:h%h", rx_data_test));
+        $display($sformatf("Testing RX, value expected:%h", rx_data_test));
         tx_wr = 0;
         uart_write_data = 8'h0;
         
@@ -295,8 +297,9 @@ module tb_top();
         
         #52083;
         rx = 1;
-        
-        
+        #52083;
+        rx_rd = 1;
+        $display("Testing RX, value observed:%h", uart_read_data);
         // Check through waveforms if data_out is appropiate.
         
         /* 
@@ -324,7 +327,9 @@ module tb_top();
         
       
         #52083;
+        rx_rd = 0;
         tx_wr = 1;
+
         first_data = 8'h86;
         uart_write_data = first_data;
         
