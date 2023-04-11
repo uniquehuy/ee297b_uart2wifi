@@ -26,7 +26,7 @@ module uart2wifi_core_baudrategen(
     output wire baudtick
     );
     
-    parameter numticks = 162;
+    parameter numticks = 54;//162 for 38400
     
     reg [15:0] count;
     wire [15:0] next;
