@@ -64,8 +64,9 @@ module uart2wifi_core_uart(
   assign uart_wr = tx_wr;
   assign uart_wdata = write_data; 
   
-  always @(posedge rx_done) begin
-    latched_dout <= rx_data[7:0];
+  always @(negedge rx_empty) begin
+    #10;
+    latched_dout <= uart_rdata[7:0];
   end
   
   
@@ -145,7 +146,7 @@ module uart2wifi_core_uart(
     .rst(rst),
     .tx_start(!rx_empty),
     .b_tick(baudtick),
-    .d_in(uart_rdata[7:0]),
+    .d_in(uart_rdata[7:0]),//.d_in(uart_rdata[7:0]),
     .tx_done(tx_done),
     .tx(tx)
   );

@@ -30,12 +30,12 @@ module uart2wifi_core_ip(
     //input data_out_test,
     input RsRx,
     output RsTx,
-    
+    output led_test,
     output reg [7:0] led_output
     );
     
     wire led_en;
-    
+    assign led_test = RsRx;
     logic rx, tx; 
     /*
     fsm_state cur_state;

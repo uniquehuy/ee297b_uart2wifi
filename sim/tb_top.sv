@@ -50,6 +50,7 @@ module tb_top();
     logic [7:0] first_data;
     logic [7:0] second_data;
     logic [7:0] uart_write_data;
+    logic [7:0] latched_dout;
     
     reg_if reg_if_inst();
     
@@ -62,7 +63,7 @@ module tb_top();
     //uart2wifi_core_fifo fifo_dut(.clk(clk), .rst(rst), .rd(fifo_rd), .wr(fifo_wr), .empty(empty), 
     // .full(full), .write_data(write_data), .read_data(read_data));
     
-    uart2wifi_core_uart uart_dut(.clk(clk), .rst(rst), .tx_wr(tx_wr), .write_data(uart_write_data), .rx(rx), .tx(tx));
+    uart2wifi_core_uart uart_dut(.clk(clk), .rst(rst), .tx_wr(tx_wr), .write_data(uart_write_data), .rx(rx), .tx(tx), .latched_dout(latched_dout));
      
      
     always @(posedge clk or posedge rst) begin
@@ -279,24 +280,24 @@ module tb_top();
         string tag = "test_uart";
         bit [7:0] rx_data_test;
         
-        rx_data_test = 8'h61;
+        rx_data_test = 8'h77;
         
         $display("Starting %0s", tag);
         $display($sformatf("Testing RX, value expected:h%h", rx_data_test));
         tx_wr = 0;
         uart_write_data = 8'h0;
-        
+        for (int j = 0; j<2;j++) begin
         // start bit
         rx = 0;
-        for (int i = 0; i < 8; i++) begin
-            #52083;
-            rx = rx_data_test[i];
-        end
+            for (int i = 0; i < 8; i++) begin
+                #52083;
+                rx = rx_data_test[i];
+            end
         
         #52083;
         rx = 1;
-        
-        
+        #52083;
+        end
         // Check through waveforms if data_out is appropiate.
         
         /* 
