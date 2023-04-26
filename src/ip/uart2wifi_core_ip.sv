@@ -28,15 +28,22 @@ module uart2wifi_core_ip(
     //output [3:0] state_led,
     //input data_in_test,
     //input data_out_test,
+    input btnL,
     input RsRx,
     output RsTx,
     output led_test,
-    output reg [7:0] led_output
+    output reg [7:0] led_output,
+    output button_led,
+    
+    output esp_tx,
+    input esp_rx
     );
     
     wire led_en;
     assign led_test = RsRx;
     logic rx, tx; 
+
+    wire send_button_out;
     /*
     fsm_state cur_state;
     
@@ -49,7 +56,9 @@ module uart2wifi_core_ip(
     uart2wifi_core_led uart2wifi_core_led_inst(.clk(clk), .led_en(led_en),.state(cur_state),.led_arr(state_led) ,.led_out(board_led0));
     uart2wifi_core_serial uart2wifi_core_serial_inst();
     */
-    uart2wifi_core_uart uart2wifi_core_uart_inst( .clk(clk), .rst(rst), .rx(RsRx), .tx(RsTx), .latched_dout(led_output));
+    uart2wifi_core_uart uart2wifi_core_uart_inst( .clk(clk), .rst(rst), .rx(RsRx), .tx(RsTx), .latched_dout(led_output), .send_buffer(send_button_out), .esp_tx(esp_tx), .esp_rx(esp_rx));
+
+    uart2wifi_core_button button_send_inst(.clk(clk), .rst(rst), .out_led(button_led), .button_in(btnL), .out(send_button_out));
     //uart2wifi_core_sram uart2wifi_core_sram_inst (.clk(clk), .rst(rst), .sram_reg_if(fsm_reg_if));
 endmodule
 

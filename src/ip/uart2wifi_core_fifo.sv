@@ -26,15 +26,16 @@ module uart2wifi_core_fifo #(parameter DWIDTH=8)
     input wire rst, 
     input wire rd,
     input wire wr,
+    input wr_man,
     input wire [DWIDTH-1:0] write_data,
-    
+    input wire [DWIDTH-1:0] write_data_manual,
     output wire empty,
     output wire full,
     output wire [DWIDTH-1:0] read_data
                 
  );
  
-    parameter address_size = 4;
+    parameter address_size = 8;
     
     reg [DWIDTH-1:0] mem [2**address_size-1:0];
     reg [address_size-1:0] wr_ptr, rd_ptr;
@@ -46,19 +47,25 @@ module uart2wifi_core_fifo #(parameter DWIDTH=8)
     reg full_next;
     reg empty_next;
     
+    wire w_all;
     wire w_en;
+    wire w_en_man;
     
     always@(posedge clk)
         if(w_en)
         begin
             mem[wr_ptr] <= write_data;
         end
+        else if (w_en_man) begin
+            mem[wr_ptr] <= write_data_manual;
+        end
      
     //   
    assign read_data = mem[rd_ptr];        
             
-    
+    assign w_all = w_en | w_en_man;
     assign w_en = wr & ~full_reg;
+    assign w_en_man = wr_man & ~full_reg;
     assign full = full_reg;
     assign empty = empty_reg;
     //State Machine
@@ -92,7 +99,7 @@ module uart2wifi_core_fifo #(parameter DWIDTH=8)
     full_next = full_reg;
     empty_next = empty_reg;
     
-    case({w_en,rd})
+    case({w_all,rd})
         2'b00: 
         begin
         
