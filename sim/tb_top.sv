@@ -34,6 +34,8 @@ module tb_top();
     logic data_out_test;
     logic error_flag = 0;
     
+    logic button_in;
+
     logic [31:0] counter, counter_d;
     
     //tb outputs
@@ -45,7 +47,7 @@ module tb_top();
     logic [7:0] write_data, read_data;
     
     // uart tb I/Os
-    logic rx, tx, tx_wr;
+    logic rx, tx, tx_wr, esp_tx, esp_rx;
     logic enable;
     logic [7:0] first_data;
     logic [7:0] second_data;
@@ -63,7 +65,7 @@ module tb_top();
     //uart2wifi_core_fifo fifo_dut(.clk(clk), .rst(rst), .rd(fifo_rd), .wr(fifo_wr), .empty(empty), 
     // .full(full), .write_data(write_data), .read_data(read_data));
     
-    uart2wifi_core_uart uart_dut(.clk(clk), .rst(rst), .tx_wr(tx_wr), .write_data(uart_write_data), .rx(rx), .tx(tx), .latched_dout(latched_dout));
+    uart2wifi_core_uart uart_dut(.clk(clk), .rst(rst), .tx_wr(tx_wr), .write_data(uart_write_data), .rx(rx), .tx(tx), .latched_dout(latched_dout), .send_buffer(button_in), .esp_tx(esp_tx));
      
      
     always @(posedge clk or posedge rst) begin
@@ -86,6 +88,14 @@ module tb_top();
         reg_if_inst.reg_read = 0;
     end
     
+    initial begin
+        button_in = 0;
+        #1300us;
+        button_in = 1;
+        @(posedge clk);
+        button_in = 0;
+    end
+    
     // Set tb inputs initial board_led0
     initial begin
         data_in_test = 0;
@@ -96,14 +106,14 @@ module tb_top();
     initial begin
         rst = 0;
         clk = 0;
-        forever #10 clk = ~clk; //50MHz clock
+        forever #5 clk = ~clk; //50MHz clock
     end
     
     // Kill simulation if timeout
     initial begin
         forever begin
             @(posedge clk);
-            if (counter > 100000) begin
+            if (counter > 800000) begin
                 $display("FAIL, TEST TIMEOUT");
                 $finish();
             end
@@ -287,16 +297,16 @@ module tb_top();
         tx_wr = 0;
         uart_write_data = 8'h0;
         for (int j = 0; j<2;j++) begin
-        // start bit
-        rx = 0;
-            for (int i = 0; i < 8; i++) begin
-                #52083;
-                rx = rx_data_test[i];
-            end
-        
-        #52083;
-        rx = 1;
-        #52083;
+            // start bit
+            rx = 0;
+                for (int i = 0; i < 8; i++) begin
+                    #8680.55;
+                    rx = rx_data_test[i];
+                end
+            
+            #8680.55;
+            rx = 1;
+            #8680.55;
         end
         // Check through waveforms if data_out is appropiate.
         

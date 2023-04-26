@@ -26,6 +26,7 @@ module uart2wifi_core_fsm(
     input clk,
     input rst,
     input data_in,
+    input [7:0] data,
     input data_out,
     input switch_in,
     output led_en,
